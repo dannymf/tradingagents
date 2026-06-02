@@ -8,16 +8,20 @@ _TRADINGAGENTS_HOME = os.path.join(os.path.expanduser("~"), ".tradingagents")
 # of the existing default, so users can keep writing plain strings in
 # their .env file.
 _ENV_OVERRIDES = {
-    "TRADINGAGENTS_LLM_PROVIDER":         "llm_provider",
-    "TRADINGAGENTS_DEEP_THINK_LLM":       "deep_think_llm",
-    "TRADINGAGENTS_QUICK_THINK_LLM":      "quick_think_llm",
-    "TRADINGAGENTS_LLM_BACKEND_URL":      "backend_url",
-    "TRADINGAGENTS_OUTPUT_LANGUAGE":      "output_language",
-    "TRADINGAGENTS_MAX_DEBATE_ROUNDS":    "max_debate_rounds",
-    "TRADINGAGENTS_MAX_RISK_ROUNDS":      "max_risk_discuss_rounds",
-    "TRADINGAGENTS_CHECKPOINT_ENABLED":   "checkpoint_enabled",
-    "TRADINGAGENTS_BENCHMARK_TICKER":     "benchmark_ticker",
-    "TRADINGAGENTS_TEMPERATURE":          "temperature",
+    "TRADINGAGENTS_LLM_PROVIDER":              "llm_provider",
+    "TRADINGAGENTS_DEEP_THINK_LLM":            "deep_think_llm",
+    "TRADINGAGENTS_QUICK_THINK_LLM":           "quick_think_llm",
+    "TRADINGAGENTS_LLM_BACKEND_URL":           "backend_url",
+    "TRADINGAGENTS_QUICK_THINK_LLM_PROVIDER":  "quick_think_llm_provider",
+    "TRADINGAGENTS_DEEP_THINK_LLM_PROVIDER":   "deep_think_llm_provider",
+    "TRADINGAGENTS_QUICK_THINK_LLM_BACKEND_URL": "quick_think_llm_backend_url",
+    "TRADINGAGENTS_DEEP_THINK_LLM_BACKEND_URL":  "deep_think_llm_backend_url",
+    "TRADINGAGENTS_OUTPUT_LANGUAGE":           "output_language",
+    "TRADINGAGENTS_MAX_DEBATE_ROUNDS":         "max_debate_rounds",
+    "TRADINGAGENTS_MAX_RISK_ROUNDS":           "max_risk_discuss_rounds",
+    "TRADINGAGENTS_CHECKPOINT_ENABLED":        "checkpoint_enabled",
+    "TRADINGAGENTS_BENCHMARK_TICKER":          "benchmark_ticker",
+    "TRADINGAGENTS_TEMPERATURE":               "temperature",
 }
 
 
@@ -55,12 +59,22 @@ DEFAULT_CONFIG = _apply_env_overrides({
     "llm_provider": "openai",
     "deep_think_llm": "gpt-5.5",
     "quick_think_llm": "gpt-5.4-mini",
+    # Per-role provider overrides. When set, these take precedence over
+    # llm_provider for the respective model. Useful when quick and deep
+    # thinking should use different providers (e.g. Anthropic for quick,
+    # OpenAI for deep). Set via TRADINGAGENTS_QUICK/DEEP_THINK_LLM_PROVIDER.
+    "quick_think_llm_provider": None,
+    "deep_think_llm_provider": None,
     # When None, each provider's client falls back to its own default endpoint
     # (api.openai.com for OpenAI, generativelanguage.googleapis.com for Gemini, ...).
     # The CLI overrides this per provider when the user picks one. Keeping a
     # provider-specific URL here would leak (e.g. OpenAI's /v1 was previously
     # being forwarded to Gemini, producing malformed request URLs).
     "backend_url": None,
+    # Per-role backend URL overrides. When set, override backend_url for the
+    # respective model (needed when quick and deep use different providers).
+    "quick_think_llm_backend_url": None,
+    "deep_think_llm_backend_url": None,
     # Provider-specific thinking configuration
     "google_thinking_level": None,      # "high", "minimal", etc.
     "openai_reasoning_effort": None,    # "medium", "high", "low"

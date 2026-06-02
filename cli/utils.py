@@ -268,6 +268,23 @@ def select_deep_thinking_agent(provider) -> str:
     """Select deep thinking llm engine using an interactive selection."""
     return _select_model(provider, "deep")
 
+
+def select_llm_provider_with_region() -> tuple[str, str | None]:
+    """Select provider, resolve regional variants, and return (provider_key, backend_url)."""
+    selected_provider, backend_url = select_llm_provider()
+
+    if selected_provider == "qwen":
+        selected_provider, backend_url = ask_qwen_region()
+    elif selected_provider == "minimax":
+        selected_provider, backend_url = ask_minimax_region()
+    elif selected_provider == "glm":
+        selected_provider, backend_url = ask_glm_region()
+
+    if selected_provider == "ollama":
+        confirm_ollama_endpoint(backend_url)
+
+    return selected_provider, backend_url
+
 def _llm_provider_table() -> list[tuple[str, str, str | None]]:
     """(display_name, provider_key, base_url) for every supported provider.
 

@@ -78,24 +78,36 @@ class TradingAgentsGraph:
         os.makedirs(self.config["data_cache_dir"], exist_ok=True)
         os.makedirs(self.config["results_dir"], exist_ok=True)
 
-        # Initialize LLMs with provider-specific thinking configuration
-        llm_kwargs = self._get_provider_kwargs()
+        # Resolve effective provider and backend URL for each model role.
+        # Per-role overrides take precedence over the shared llm_provider/backend_url.
+        quick_provider = (
+            self.config.get("quick_think_llm_provider") or self.config["llm_provider"]
+        ).lower()
+        deep_provider = (
+            self.config.get("deep_think_llm_provider") or self.config["llm_provider"]
+        ).lower()
+        quick_url = self.config.get("quick_think_llm_backend_url") or self.config.get("backend_url")
+        deep_url = self.config.get("deep_think_llm_backend_url") or self.config.get("backend_url")
+
+        quick_kwargs = self._get_provider_kwargs(quick_provider)
+        deep_kwargs = self._get_provider_kwargs(deep_provider)
 
         # Add callbacks to kwargs if provided (passed to LLM constructor)
         if self.callbacks:
-            llm_kwargs["callbacks"] = self.callbacks
+            quick_kwargs["callbacks"] = self.callbacks
+            deep_kwargs["callbacks"] = self.callbacks
 
         deep_client = create_llm_client(
-            provider=self.config["llm_provider"],
+            provider=deep_provider,
             model=self.config["deep_think_llm"],
-            base_url=self.config.get("backend_url"),
-            **llm_kwargs,
+            base_url=deep_url,
+            **deep_kwargs,
         )
         quick_client = create_llm_client(
-            provider=self.config["llm_provider"],
+            provider=quick_provider,
             model=self.config["quick_think_llm"],
-            base_url=self.config.get("backend_url"),
-            **llm_kwargs,
+            base_url=quick_url,
+            **quick_kwargs,
         )
 
         self.deep_thinking_llm = deep_client.get_llm()
@@ -135,10 +147,10 @@ class TradingAgentsGraph:
         self.graph = self.workflow.compile()
         self._checkpointer_ctx = None
 
-    def _get_provider_kwargs(self) -> Dict[str, Any]:
+    def _get_provider_kwargs(self, provider: str) -> Dict[str, Any]:
         """Get provider-specific kwargs for LLM client creation."""
         kwargs = {}
-        provider = self.config.get("llm_provider", "").lower()
+        provider = provider.lower()
 
         if provider == "google":
             thinking_level = self.config.get("google_thinking_level")
